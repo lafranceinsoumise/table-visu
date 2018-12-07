@@ -1,0 +1,11 @@
+{
+  "name": "table-visu",
+  "version": "0.0.1",
+  "description": "Visualisation des tables pour la Convention 2018",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
