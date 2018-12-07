@@ -4,7 +4,8 @@
   "description": "Visualisation des tables pour la Convention 2018",
   "main": "index.js",
   "scripts": {
-    "watch": "webpack-dev-server --mode=development"
+    "watch": "webpack-dev-server --mode=development",
+    "build": "webpack --mode=production"
   },
   "author": "",
   "license": "ISC",

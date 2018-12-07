@@ -9,6 +9,7 @@ black = "==18.9b"
 [packages]
 django = "*"
 django-crispy-forms = "*"
+django-cors-headers = "*"
 
 [requires]
 python_version = "3.6"
