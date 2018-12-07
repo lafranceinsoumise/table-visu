@@ -15,5 +15,7 @@ class Table(models.Model):
 
 
 class Reponse(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
     question = models.ForeignKey("Question", on_delete=models.CASCADE)
     table = models.ForeignKey("Table", on_delete=models.CASCADE)
+    choice = models.IntegerField("Réponse")
