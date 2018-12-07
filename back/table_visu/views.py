@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import FormView, UpdateView
@@ -38,6 +39,9 @@ class ReponseView(UpdateView):
 
         self.question = Question.objects.last()
 
+        if self.question is None:
+            return TemplateResponse(request=self.request, template="not_open.html")
+
         try:
             self.table = Table.objects.get(pk=request.session.get("table"))
             return super().dispatch(request, *args, **kwargs)
@@ -64,6 +68,10 @@ class ReponseView(UpdateView):
 class ResultView(View):
     def get(self, request, *args, **kwargs):
         question = Question.objects.last()
+
+        if question is None:
+            return {"type": "number"}
+
         reponses = Reponse.objects.filter(question=question).order_by("created")
 
         if question.type == Question.TYPE_NUMBER:
