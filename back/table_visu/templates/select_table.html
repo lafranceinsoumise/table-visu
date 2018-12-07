@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Bonjour,</h1>
+    <p>pour participer, veuillez entrer le code reçu par email (si vous êtes un groupe d'action) ou présent sur
+        votre table (si vous êtes présent⋅e physiquement à la Convention)&nbsp;:</p>
+    <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-success">Valider</button>
+  </form>
+{% endblock %}

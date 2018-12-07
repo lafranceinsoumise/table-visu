@@ -16,6 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from table_visu.views import SelectTableView, ReponseView, ResultView
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("", SelectTableView.as_view(), name="select_table"),
+    path("question", ReponseView.as_view(), name="reponse"),
+    path("json", ResultView.as_view()),
+    path("admin/", admin.site.urls),
 ]

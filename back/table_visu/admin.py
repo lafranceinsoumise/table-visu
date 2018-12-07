@@ -15,4 +15,5 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(Reponse)
 class ReponseAdmin(admin.ModelAdmin):
+    list_display = ("table", "question", "participants", "choice")
     pass
