@@ -68,8 +68,13 @@ class ResultView(View):
 
         if question.type == Question.TYPE_NUMBER:
             return JsonResponse(
-                {r.table.numero: r.choice / r.participants for r in reponses}
+                {
+                    "type": "number",
+                    **{r.table.numero: r.choice / r.participants for r in reponses},
+                }
             )
 
         if question.type == Question.TYPE_BOOLEAN:
-            return JsonResponse({r.table.numero: r.choice for r in reponses})
+            return JsonResponse(
+                {"type": "boolean", **{r.table.numero: r.choice for r in reponses}}
+            )
