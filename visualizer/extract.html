@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>A1</title>
+  <style>
+    html, body, img, #content {
+      margin: 0;
+      padding: 0;
+    }
+    #content {
+      position: relative;
+    }
+    #truc {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 0;
+      display: none;
+    }
+    #truc .circle {
+      margin: 0;
+      padding: 0;
+      width: 3px;
+      height: 3px;
+      background-color: red;
+      border: 1px solid black;
+      -webkit-border-radius: 100%;
+      -moz-border-radius: 100%;
+      border-radius: 100%;
+    }
+    #truc span {
+      font-size: 4em;
+      font-weight: bolder;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+<div id="content">
+<img src="capture.png" id="carte" alt="carte" width="2296" height="1748">
+<div id="truc"><div class="circle"><span></span></div></div>
+</div>
+<script>
+  var coordinates = {}
+  var zone = 'A'
+  var number = 1
+  var truc = document.getElementById('truc');
+  var span = truc.querySelector('span');
+
+  function refresh() {
+    if (coordinates.hasOwnProperty(zone + number)) {
+      document.title = zone + number + ' (OK)';
+      truc.style.display = "block";
+      truc.style.left = (coordinates[zone+number][0] - 1.5) + 'px';
+      truc.style.top = (coordinates[zone+number][1] - 1.5) + 'px';
+      span.textContent = zone+number;
+    } else {
+      document.title = zone + number
+      truc.style.display = 'none';
+    }
+
+  }
+
+  document.addEventListener('keypress', function (e) {
+    console.log(e.key)
+    switch (e.key) {
+      case 'a':
+      case 'b':
+      case 'c':
+      case 'd':
+      case 'e':
+      case 'f':
+        zone = e.key.toUpperCase();
+        number = 1;
+        break
+      case 'l':
+        number = Math.max(1, number - 1)
+        break
+      case 'm':
+        number = number + 1
+    }
+    refresh()
+  })
+
+  document.getElementById('content').addEventListener('click', function (e) {
+    console.log(e.pageX, e.pageY);
+    coordinates[zone + number] = [e.pageX, e.pageY]
+    refresh()
+  })
+</script>
+
+</body>
+</html>
