@@ -34,3 +34,16 @@ body {
     width: 20vw;
     padding: 40px 20px;
 }
+
+.groups {
+    display: flex;
+    padding: 40px 20px;
+    flex-wrap: wrap;
+}
+
+.group {
+    min-width: 30px;
+    height: 30px;
+    border: 1px solid black;
+    margin: 10px;
+}
