@@ -186,7 +186,7 @@ function setUp (tableGroup, legendGroup, groupGroup) {
   }
 
   async function fetchData () {
-    const res = await fetch('/json')
+    const res = await fetch(process.env.NODE_ENV === 'production' ? '/json' : 'http://localhost:8080')
     const data = await res.json()
 
     refresh(data)
