@@ -4,8 +4,6 @@ import { interpolateRdYlGn } from 'd3-scale-chromatic'
 import './svg.css'
 import rawTableCoords from './data.json'
 
-import data from './sample.json'
-
 const tableCoords = Object.entries(rawTableCoords).map(([table, coordinates]) => ({
   table,
   x: coordinates[0],
