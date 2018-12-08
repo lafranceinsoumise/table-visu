@@ -6,9 +6,21 @@ import rawTableCoords from './data.json'
 
 const tableCoords = Object.entries(rawTableCoords).map(([table, coordinates]) => ({
   table,
-  x: coordinates[0],
-  y: coordinates[1]
+  x: Math.round(coordinates[0]),
+  y: Math.round(coordinates[1])
 }))
+
+const rectW = 127
+const otherRectH = 50
+const rect1C = [772, 805]
+const rect2C = [1367, 805]
+
+const rects = [
+  [...rect1C, rect1C[0] + rectW, rect1C[1] + rectW],
+  [...rect2C, rect2C[0] + rectW, rect2C[1] + rectW],
+  [rect1C[0] + rectW, rect1C[1] + rectW / 2 - otherRectH / 2, rect2C[0], rect1C[1] + rectW / 2 + otherRectH / 2]
+]
+console.log(rects)
 
 const defaultMargin = 60
 
@@ -19,19 +31,30 @@ const margin = {
   left: defaultMargin
 }
 
+const colorScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
+const grey = '#888';
+
 function Table (g, tableCoords, data) {
+
+  const circleGroup = g.append('g')
+  const textGroup = g.append('g')
+  const sceneGroup = g.append('g')
 
   return function refresh (data) {
     const dimensions = [0.8 * window.innerWidth - margin.left - margin.right, window.innerHeight - margin.top - margin.bottom]
     const joinedData = tableCoords.map(d => Object.assign({ value: data[d.table] }, d))
 
-    const circles = g
+    const circles = circleGroup
       .selectAll('circle')
       .data(joinedData)
 
-    const text = g
+    const text = textGroup
       .selectAll('text')
       .data(joinedData)
+
+    const scene = sceneGroup
+      .selectAll('rect')
+      .data(rects)
 
     const xScale = d3.scaleLinear().range([0, dimensions[0]])
       .domain(d3.extent(tableCoords.map(d => d.x)))
@@ -51,7 +74,7 @@ function Table (g, tableCoords, data) {
       .attr('cy', d => yScale(d.y))
       .transition()
       .duration(1000)
-      .attr('fill', d => d.value ? colorScale(d.value) : '#888')
+      .attr('fill', d => d.value ? colorScale(d.value) : grey)
 
     text.enter()
       .append('text')
@@ -65,6 +88,17 @@ function Table (g, tableCoords, data) {
       .transition()
       .duration(1000)
       .attr('fill', d => d.value ? (d.value > 0.3 && d.value < 0.7 ? 'black' : 'white') : 'black')
+
+    scene.enter()
+      .append('rect')
+      .attr('fill', 'none')
+      .attr('stroke', 'blue')
+      .attr('stroke-width', 5)
+      .merge(scene)
+      .attr('x', d => xScale(d[0]))
+      .attr('y', d => yScale(d[1]))
+      .attr('width', d => xScale(d[2]) - xScale(d[0]))
+      .attr('height', d => yScale(d[3]) - yScale(d[1]))
   }
 }
 
@@ -79,8 +113,6 @@ function Legend (div) {
   const lower = div.append('div')
     .text('D\'accord')
     .style('text-align', 'right')
-
-  const colorScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
 
   return function refresh () {
     const width = 0.2 * window.innerWidth - 40
@@ -111,9 +143,34 @@ function Legend (div) {
   }
 }
 
-function setUp (tableGroup, legendGroup) {
-  const table = Table(tableGroup, tableCoords, data)
+function Groups (div) {
+  const knownGroups = []
+
+  return function refresh (data) {
+    const groupKeys = Object.keys(data).filter(k => k[0] === 'G')
+
+    for (let g of groupKeys) {
+      if (!knownGroups.includes(g)) {
+        knownGroups.push(g)
+      }
+    }
+
+    const groups = div.selectAll('.group')
+      .data(knownGroups.map(k => ({ group: k, value: data[k] })))
+
+    groups.enter()
+      .append('div')
+      .attr('class', 'group')
+      .merge(groups)
+      .style('background-color', d => d.value ? colorScale(d.value) : grey)
+      .style('color', d => d.value ? (d.value > 0.3 && d.value < 0.7 ? 'black' : 'white') : 'black')
+  }
+}
+
+function setUp (tableGroup, legendGroup, groupGroup) {
+  const table = Table(tableGroup, tableCoords)
   const legend = Legend(legendGroup)
+  const group = Groups(groupGroup)
   let refresher
 
   window.addEventListener('resize', function () {
@@ -125,10 +182,11 @@ function setUp (tableGroup, legendGroup) {
   function refresh (data) {
     table(data)
     legend()
+    group(data)
   }
 
   async function fetchData () {
-    const res = await fetch('http://localhost:8000/json')
+    const res = await fetch(process.env.NODE_ENV === 'production' ? '/json' : 'http://localhost:8080')
     const data = await res.json()
 
     refresh(data)
@@ -144,7 +202,8 @@ function main () {
   const div = d3.select('body').append('div').attr('class', 'sidebar')
   const tables = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
   const legendGroup = div.append('div')
-  setUp(tables, legendGroup, data)
+  const groupGroup = div.append('div').attr('class', 'groups')
+  setUp(tables, legendGroup, groupGroup)
 }
 
 main()
