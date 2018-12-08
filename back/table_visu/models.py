@@ -4,14 +4,13 @@ from django.db import models
 class Question(models.Model):
     TYPE_NUMBER = "number"
     TYPE_BOOLEAN = "boolean"
-    TYPE_OPEN = "open"
     TYPE_CHOICES = (
         (TYPE_NUMBER, "Nombre de personne d'accord"),
         (TYPE_BOOLEAN, "Consensus ou non"),
-        (TYPE_OPEN, "Question ouverte"),
     )
     text = models.TextField()
     type = models.CharField(max_length=255, choices=TYPE_CHOICES)
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.text[:400] + "..."
@@ -31,3 +30,6 @@ class Reponse(models.Model):
     table = models.ForeignKey("Table", on_delete=models.CASCADE)
     participants = models.PositiveIntegerField("Nombre de personne dans le groupe")
     choice = models.PositiveIntegerField("Réponse")
+    comment = models.TextField(
+        "Avez-vous d'autres propositions ?", blank=True, null=True
+    )

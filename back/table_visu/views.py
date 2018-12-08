@@ -3,7 +3,10 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.response import SimpleTemplateResponse
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import View
+from django.views.decorators.cache import cache_control
+from django.views.decorators.http import last_modified
 from django.views.generic import FormView, UpdateView
 
 from table_visu.forms import SelectTableForm, ReponseForm
@@ -18,6 +21,14 @@ class SelectTableView(FormView):
     def form_valid(self, form):
         self.request.session["table"] = form.cleaned_data["table"].pk
         return super().form_valid(form)
+
+
+def last_time(request):
+    question = Question.objects.last()
+    if question is not None:
+        return JsonResponse({"last_question": question.created})
+    else:
+        return JsonResponse({})
 
 
 class ReponseView(UpdateView):
@@ -69,7 +80,7 @@ class ReponseView(UpdateView):
 
 class ResultView(View):
     def get(self, request, *args, **kwargs):
-        question = Question.objects.exclude(type=Question.TYPE_OPEN).last()
+        question = Question.objects.last()
 
         if question is None:
             return JsonResponse({"type": "number"})

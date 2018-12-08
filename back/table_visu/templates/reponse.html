@@ -18,5 +18,19 @@
     {% csrf_token %}
     {{ form|crispy }}
     <button type="submit" class="btn btn-success">Enregistrer la réponse</button>
+    <script>
+        var questionTime = new Date("{{ question.created|date:'c' }}");
+        setInterval(function() {
+          var r = new XMLHttpRequest();
+          r.open("GET", "last_question", true);
+          r.onreadystatechange = function () {
+            if (r.readyState != 4 || r.status != 200) return;
+            if (new Date(JSON.parse(r.responseText).last_question) > questionTime) {
+              location.reload();
+            }
+          };
+          r.send("banana=yellow");
+        }, 5000);
+    </script>
   </form>
 {% endblock %}

@@ -26,6 +26,7 @@ class ReponseForm(forms.ModelForm):
             self.fields[
                 "choice"
             ].label = "Nombre de personnes d'accord avec la proposition."
+            del self.fields["comment"]
 
         if self.instance.question.type == Question.TYPE_BOOLEAN:
             self.fields["choice"] = ChoiceField(
@@ -43,4 +44,4 @@ class ReponseForm(forms.ModelForm):
 
     class Meta:
         model = Reponse
-        fields = ["participants", "choice"]
+        fields = ["participants", "choice", "comment"]
