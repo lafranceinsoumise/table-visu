@@ -95,7 +95,13 @@ class ResultView(View):
                     "type": "number",
                     **{
                         re.sub(r"^([A-F])0([0-9])$", r"\1\2", r.table.numero): r.choice
-                        / (r.participants or r.choice)
+                        / (
+                            r.participants
+                            if (r.participants > 0)
+                            else r.choice
+                            if r.choice > 0
+                            else 1
+                        )
                         for r in reponses
                     },
                 }
