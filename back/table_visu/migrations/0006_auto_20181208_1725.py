@@ -5,14 +5,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('table_visu', '0005_question_created'),
-    ]
+    dependencies = [("table_visu", "0005_question_created")]
 
     operations = [
         migrations.AlterField(
-            model_name='reponse',
-            name='comment',
-            field=models.TextField(blank=True, null=True, verbose_name='Quelles sont vos propositions ?'),
-        ),
+            model_name="reponse",
+            name="comment",
+            field=models.TextField(
+                blank=True, null=True, verbose_name="Quelles sont vos propositions ?"
+            ),
+        )
     ]

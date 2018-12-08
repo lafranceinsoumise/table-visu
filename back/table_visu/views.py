@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -91,11 +93,21 @@ class ResultView(View):
             return JsonResponse(
                 {
                     "type": "number",
-                    **{r.table.numero: r.choice / r.participants for r in reponses},
+                    **{
+                        re.sub(r"^([A-F])0([0-9])$", r"\1\2", r.table.numero): r.choice
+                        / r.participants
+                        for r in reponses
+                    },
                 }
             )
 
         if question.type == Question.TYPE_BOOLEAN:
             return JsonResponse(
-                {"type": "boolean", **{r.table.numero: r.choice for r in reponses}}
+                {
+                    "type": "boolean",
+                    **{
+                        re.sub(r"^([A-F])0([0-9])$", r"\1\2", r.table.numero): r.choice
+                        for r in reponses
+                    },
+                }
             )
