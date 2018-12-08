@@ -4,9 +4,11 @@ from django.db import models
 class Question(models.Model):
     TYPE_NUMBER = "number"
     TYPE_BOOLEAN = "boolean"
+    TYPE_OPEN = "open"
     TYPE_CHOICES = (
         (TYPE_NUMBER, "Nombre de personne d'accord"),
         (TYPE_BOOLEAN, "Consensus ou non"),
+        (TYPE_OPEN, "Question ouverte"),
     )
     text = models.TextField()
     type = models.CharField(max_length=255, choices=TYPE_CHOICES)
