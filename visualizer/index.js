@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import { interpolateRdYlGn } from 'd3-scale-chromatic'
+import { interpolateRdYlGn, schemeRdBu } from 'd3-scale-chromatic'
 
 import './svg.css'
 import rawTableCoords from './data.json'
@@ -20,7 +20,6 @@ const rects = [
   [...rect2C, rect2C[0] + rectW, rect2C[1] + rectW],
   [rect1C[0] + rectW, rect1C[1] + rectW / 2 - otherRectH / 2, rect2C[0], rect1C[1] + rectW / 2 + otherRectH / 2]
 ]
-console.log(rects)
 
 const defaultMargin = 60
 
@@ -31,17 +30,22 @@ const margin = {
   left: defaultMargin
 }
 
-const colorScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
-const grey = '#888';
+const agreementColors = ['#f26026', '#64b736']
 
-function Table (g, tableCoords, data) {
+const numberScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
+const agreementScale = d3.scaleOrdinal(agreementColors).domain([0, 1])
+const grey = '#888'
+
+function Table (g, tableCoords) {
 
   const circleGroup = g.append('g')
   const textGroup = g.append('g')
   const sceneGroup = g.append('g')
 
   return function refresh (data) {
-    const dimensions = [0.8 * window.innerWidth - margin.left - margin.right, window.innerHeight - margin.top - margin.bottom]
+    const svgDimensions = g.node().parentNode.getBoundingClientRect()
+
+    const dimensions = [svgDimensions.width - margin.left - margin.right, svgDimensions.height - margin.top - margin.bottom]
     const joinedData = tableCoords.map(d => Object.assign({ value: data[d.table] }, d))
 
     const circles = circleGroup
@@ -62,7 +66,7 @@ function Table (g, tableCoords, data) {
     const yScale = d3.scaleLinear().range([0, dimensions[1]])
       .domain(d3.extent(tableCoords.map(d => d.y)))
 
-    const colorScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
+    const colorScale = data.type === 'number' ? numberScale : agreementScale
 
     circles.enter()
       .append('circle')
@@ -74,7 +78,7 @@ function Table (g, tableCoords, data) {
       .attr('cy', d => yScale(d.y))
       .transition()
       .duration(1000)
-      .attr('fill', d => d.value ? colorScale(d.value) : grey)
+      .attr('fill', d => d.value !== undefined ? colorScale(d.value) : grey)
 
     text.enter()
       .append('text')
@@ -102,51 +106,90 @@ function Table (g, tableCoords, data) {
   }
 }
 
-function Legend (div) {
-  const upper = div.append('div')
-    .text('Pas d\'accord')
-    .style('text-align', 'left')
+function legendNumber (div) {
 
-  const canvas = div.append('canvas')
+  div.attr('class', 'legendNumber')
+  const left = div.append('div').attr('class', 'left')
+  const right = div.append('div').attr('class', 'right')
+    .style('display', 'flex').style('flex-direction', 'column').style('justify-content', 'space-between')
+
+  const upper = right.append('div')
+    .text('D\'accord')
+
+  const lower = right.append('div')
+    .text('Pas d\'accord')
+
+  const canvas = left.append('canvas')
   const ctx = canvas.node().getContext('2d')
 
-  const lower = div.append('div')
-    .text('D\'accord')
-    .style('text-align', 'right')
+  const height = 160
 
-  return function refresh () {
-    const width = 0.2 * window.innerWidth - 40
+  canvas.attr('height', height)
+    .attr('width', 1)
+    .style('height', height + 'px')
+    .style('width', '30px')
+    .style('border', '1px solid black')
 
-    canvas.attr('height', 1)
-      .attr('width', width)
-      .style('height', '40px')
-      .style('width', width + 'px')
-      .style('border', '1px solid black')
+  ctx.clearRect(0, 0, 1, height)
 
-    ctx.clearRect(0, 0, width, 1)
+  const legendScale = d3.scaleLinear()
+    .range([0, height])
+    .domain(numberScale.domain())
 
-    const legendScale = d3.scaleLinear()
-      .range([0, width])
-      .domain(colorScale.domain())
+  const image = ctx.createImageData(1, height)
 
-    const image = ctx.createImageData(width, 1)
+  d3.range(height).forEach(function (i) {
+    const c = d3.rgb(numberScale(legendScale.invert(height - i)))
+    image.data[4 * i] = c.r
+    image.data[4 * i + 1] = c.g
+    image.data[4 * i + 2] = c.b
+    image.data[4 * i + 3] = 255
+  })
 
-    d3.range(width).forEach(function (i) {
-      var c = d3.rgb(colorScale(legendScale.invert(i)))
-      image.data[4 * i] = c.r
-      image.data[4 * i + 1] = c.g
-      image.data[4 * i + 2] = c.b
-      image.data[4 * i + 3] = 255
-    })
+  ctx.putImageData(image, 0, 0)
+}
 
-    ctx.putImageData(image, 0, 0)
+function legendBoolean (div) {
+  const consensus = div.append('div')
+  const desaccord = div.append('div')
+
+  desaccord.append('div').attr('class', 'case').style('background-color', agreementColors[0])
+  consensus.append('div').attr('class', 'case').style('background-color', agreementColors[1])
+
+  desaccord.append('span').text('Pas de consensus')
+  consensus.append('span').text('Consensus atteint')
+}
+
+function Legend (div) {
+  let current = null
+
+  return function refresh (data) {
+    if (data.type !== current) {
+      current = data.type
+
+      if (div.node().firstChild) {
+        div.node().firstChild.remove()
+      }
+
+      if (current === 'number') {
+        legendNumber(div.append('div'))
+      } else {
+        legendBoolean(div.append('div'))
+      }
+
+    }
   }
 }
 
 function Groups (div) {
   const knownGroups = []
 
+  div.append('h3').text('Les groupes à distance')
+  const container = div.append('div').attr('class', 'groups')
+
   return function refresh (data) {
+    const colorScale = data.type === 'number' ? numberScale : agreementScale
+
     const groupKeys = Object.keys(data).filter(k => k[0] === 'G')
 
     for (let g of groupKeys) {
@@ -155,22 +198,22 @@ function Groups (div) {
       }
     }
 
-    const groups = div.selectAll('.group')
+    const groups = container.selectAll('.group')
       .data(knownGroups.map(k => ({ group: k, value: data[k] })))
 
     groups.enter()
       .append('div')
       .attr('class', 'group')
       .merge(groups)
-      .style('background-color', d => d.value ? colorScale(d.value) : grey)
+      .style('background-color', d => d.value ? numberScale(d.value) : grey)
       .style('color', d => d.value ? (d.value > 0.3 && d.value < 0.7 ? 'black' : 'white') : 'black')
   }
 }
 
-function setUp (tableGroup, legendGroup, groupGroup) {
+function setUp (tableGroup, legendGroup) {
   const table = Table(tableGroup, tableCoords)
   const legend = Legend(legendGroup)
-  const group = Groups(groupGroup)
+  //const group = Groups(groupGroup)
   let refresher
 
   window.addEventListener('resize', function () {
@@ -181,12 +224,12 @@ function setUp (tableGroup, legendGroup, groupGroup) {
 
   function refresh (data) {
     table(data)
-    legend()
-    group(data)
+    legend(data)
+    //group(data)
   }
 
   async function fetchData () {
-    const res = await fetch(process.env.NODE_ENV === 'production' ? '/json' : 'http://localhost:8080')
+    const res = await fetch(process.env.NODE_ENV === 'production' ? '/json' : 'http://localhost:8000/json')
     const data = await res.json()
 
     refresh(data)
@@ -198,12 +241,14 @@ function setUp (tableGroup, legendGroup, groupGroup) {
 }
 
 function main () {
-  const svg = d3.select('body').append('svg').attr('class', 'main').attr('shape-rendering', 'geometricPrecision')
-  const div = d3.select('body').append('div').attr('class', 'sidebar')
+  const content = d3.select('body').append('div').attr('class', 'content')
+  const svg = content.append('svg').attr('class', 'main').attr('shape-rendering', 'geometricPrecision')
+  const div = content.append('div').attr('class', 'sidebar')
   const tables = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
   const legendGroup = div.append('div')
-  const groupGroup = div.append('div').attr('class', 'groups')
-  setUp(tables, legendGroup, groupGroup)
+  setUp(tables, legendGroup)
+
+  const link = d3.select('body').append('div').attr('class', 'link').text('la-fi.fr/convention2018')
 }
 
 main()
