@@ -29,7 +29,9 @@ class ReponseView(UpdateView):
         return Reponse(table=self.table, question=self.question)
 
     def get_initial(self):
-        previous = Reponse.objects.filter(table=self.table).last()
+        previous = Reponse.objects.filter(
+            table=self.table, question=self.question
+        ).last()
         if previous is not None:
             return {"participants": previous.participants, "choice": previous.choice}
 
@@ -67,7 +69,7 @@ class ReponseView(UpdateView):
 
 class ResultView(View):
     def get(self, request, *args, **kwargs):
-        question = Question.objects.last()
+        question = Question.objects.exclude(type=Question.TYPE_OPEN).last()
 
         if question is None:
             return JsonResponse({"type": "number"})

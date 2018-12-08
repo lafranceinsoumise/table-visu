@@ -5,6 +5,7 @@ from table_visu.models import Question, Table, Reponse
 
 @admin.register(Table)
 class TableAdmin(admin.ModelAdmin):
+    list_display = ("numero", "code")
     pass
 
 

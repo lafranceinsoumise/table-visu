@@ -4,9 +4,17 @@ from django.forms import TextInput, ChoiceField, RadioSelect
 from table_visu.models import Reponse, Table, Question
 
 
+class TableCodeField(forms.ModelChoiceField):
+    def to_python(self, value):
+        return super().to_python(str(value).upper())
+
+
 class SelectTableForm(forms.Form):
-    table = forms.ModelChoiceField(
-        queryset=Table.objects.all(), to_field_name="code", widget=TextInput
+    table = TableCodeField(
+        queryset=Table.objects.all(),
+        to_field_name="code",
+        widget=TextInput,
+        label="Code",
     )
 
 
