@@ -6,7 +6,10 @@ from table_visu.models import Reponse, Table, Question
 
 class SelectTableForm(forms.Form):
     table = forms.ModelChoiceField(
-        queryset=Table.objects.all(), to_field_name="code", widget=TextInput
+        queryset=Table.objects.all(),
+        to_field_name="code",
+        widget=TextInput,
+        label="Code",
     )
 
 

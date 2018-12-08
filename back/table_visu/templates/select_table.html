@@ -4,8 +4,8 @@
 
 {% block content %}
     <h1>Bonjour,</h1>
-    <p>pour participer, veuillez entrer le code reçu par email (si vous êtes un groupe d'action) ou présent sur
-        votre table (si vous êtes présent⋅e physiquement à la Convention)&nbsp;:</p>
+    <p>pour participer, veuillez entrer le code présent sur votre table (si vous êtes présent⋅e physiquement
+        à la Convention), ou votre code postal, si vous êtes un groupe d'action&nbsp;:</p>
     <form method="post">
     {% csrf_token %}
     {{ form|crispy }}
