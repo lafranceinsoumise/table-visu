@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import { interpolateRdYlGn } from 'd3-scale-chromatic'
+import { interpolateRdYlGn, schemeRdBu } from 'd3-scale-chromatic'
 
 import './svg.css'
 import rawTableCoords from './data.json'
@@ -20,7 +20,6 @@ const rects = [
   [...rect2C, rect2C[0] + rectW, rect2C[1] + rectW],
   [rect1C[0] + rectW, rect1C[1] + rectW / 2 - otherRectH / 2, rect2C[0], rect1C[1] + rectW / 2 + otherRectH / 2]
 ]
-console.log(rects)
 
 const defaultMargin = 60
 
@@ -31,8 +30,11 @@ const margin = {
   left: defaultMargin
 }
 
-const colorScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
-const grey = '#888';
+const agreementColors = ['#f26026', '#64b736']
+
+const numberScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
+const agreementScale = d3.scaleOrdinal(agreementColors).domain([0, 1])
+const grey = '#888'
 
 function Table (g, tableCoords, data) {
 
@@ -62,7 +64,7 @@ function Table (g, tableCoords, data) {
     const yScale = d3.scaleLinear().range([0, dimensions[1]])
       .domain(d3.extent(tableCoords.map(d => d.y)))
 
-    const colorScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1])
+    const colorScale = data.type === 'number' ? numberScale : agreementScale
 
     circles.enter()
       .append('circle')
@@ -74,7 +76,7 @@ function Table (g, tableCoords, data) {
       .attr('cy', d => yScale(d.y))
       .transition()
       .duration(1000)
-      .attr('fill', d => d.value ? colorScale(d.value) : grey)
+      .attr('fill', d => d.value !== undefined ? colorScale(d.value) : grey)
 
     text.enter()
       .append('text')
@@ -127,12 +129,12 @@ function Legend (div) {
 
     const legendScale = d3.scaleLinear()
       .range([0, width])
-      .domain(colorScale.domain())
+      .domain(numberScale.domain())
 
     const image = ctx.createImageData(width, 1)
 
     d3.range(width).forEach(function (i) {
-      var c = d3.rgb(colorScale(legendScale.invert(i)))
+      var c = d3.rgb(numberScale(legendScale.invert(i)))
       image.data[4 * i] = c.r
       image.data[4 * i + 1] = c.g
       image.data[4 * i + 2] = c.b
@@ -146,7 +148,12 @@ function Legend (div) {
 function Groups (div) {
   const knownGroups = []
 
+  div.append('h3').text('Les groupes à distance')
+  const container = div.append('div').attr('class', 'groups')
+
   return function refresh (data) {
+    const colorScale = data.type === 'number' ? numberScale : agreementScale
+
     const groupKeys = Object.keys(data).filter(k => k[0] === 'G')
 
     for (let g of groupKeys) {
@@ -155,14 +162,14 @@ function Groups (div) {
       }
     }
 
-    const groups = div.selectAll('.group')
+    const groups = container.selectAll('.group')
       .data(knownGroups.map(k => ({ group: k, value: data[k] })))
 
     groups.enter()
       .append('div')
       .attr('class', 'group')
       .merge(groups)
-      .style('background-color', d => d.value ? colorScale(d.value) : grey)
+      .style('background-color', d => d.value ? numberScale(d.value) : grey)
       .style('color', d => d.value ? (d.value > 0.3 && d.value < 0.7 ? 'black' : 'white') : 'black')
   }
 }
@@ -170,7 +177,7 @@ function Groups (div) {
 function setUp (tableGroup, legendGroup, groupGroup) {
   const table = Table(tableGroup, tableCoords)
   const legend = Legend(legendGroup)
-  const group = Groups(groupGroup)
+  //const group = Groups(groupGroup)
   let refresher
 
   window.addEventListener('resize', function () {
@@ -182,11 +189,11 @@ function setUp (tableGroup, legendGroup, groupGroup) {
   function refresh (data) {
     table(data)
     legend()
-    group(data)
+    //group(data)
   }
 
   async function fetchData () {
-    const res = await fetch(process.env.NODE_ENV === 'production' ? '/json' : 'http://localhost:8080')
+    const res = await fetch(process.env.NODE_ENV === 'production' ? '/json' : 'http://localhost:8000/json')
     const data = await res.json()
 
     refresh(data)
@@ -202,7 +209,7 @@ function main () {
   const div = d3.select('body').append('div').attr('class', 'sidebar')
   const tables = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
   const legendGroup = div.append('div')
-  const groupGroup = div.append('div').attr('class', 'groups')
+  const groupGroup = div.append('div')
   setUp(tables, legendGroup, groupGroup)
 }
 

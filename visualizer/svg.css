@@ -37,7 +37,6 @@ body {
 
 .groups {
     display: flex;
-    padding: 40px 20px;
     flex-wrap: wrap;
 }
 
@@ -46,4 +45,8 @@ body {
     height: 30px;
     border: 1px solid black;
     margin: 10px;
+}
+
+h3 {
+    margin-top: 2em;
 }
