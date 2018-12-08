@@ -95,7 +95,7 @@ class ResultView(View):
                     "type": "number",
                     **{
                         re.sub(r"^([A-F])0([0-9])$", r"\1\2", r.table.numero): r.choice
-                        / (r.participants or 1)
+                        / (r.participants or r.choice)
                         for r in reponses
                     },
                 }
