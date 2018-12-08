@@ -5,4 +5,18 @@
     <h1>Bonjour,</h1>
     <p>l'atelier n'a pas encore commencé.</p>
     <p>À tout à l'heure&nbsp;!</p>
+    <script>
+        var questionTime = new Date();
+        setInterval(function() {
+          var r = new XMLHttpRequest();
+          r.open("GET", "last_question", true);
+          r.onreadystatechange = function () {
+            if (r.readyState != 4 || r.status != 200) return;
+            if (JSON.parse(r.responseText).last_question && new Date(JSON.parse(r.responseText).last_question) > questionTime) {
+              location.reload();
+            }
+          };
+          r.send();
+        }, 5000);
+    </script>
 {% endblock %}
