@@ -30,6 +30,4 @@ class Reponse(models.Model):
     table = models.ForeignKey("Table", on_delete=models.CASCADE)
     participants = models.PositiveIntegerField("Nombre de personne dans le groupe")
     choice = models.PositiveIntegerField("Réponse")
-    comment = models.TextField(
-        "Avez-vous d'autres propositions ?", blank=True, null=True
-    )
+    comment = models.TextField("Quelles sont vos propositions ?", blank=True, null=True)
