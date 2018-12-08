@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from django.template.response import TemplateResponse
+from django.template.response import SimpleTemplateResponse
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import FormView, UpdateView
@@ -40,7 +40,7 @@ class ReponseView(UpdateView):
         self.question = Question.objects.last()
 
         if self.question is None:
-            return TemplateResponse(request=self.request, template="not_open.html")
+            return SimpleTemplateResponse("not_open.html")
 
         try:
             self.table = Table.objects.get(pk=request.session.get("table"))
@@ -70,7 +70,7 @@ class ResultView(View):
         question = Question.objects.last()
 
         if question is None:
-            return {"type": "number"}
+            return JsonResponse({"type": "number"})
 
         reponses = Reponse.objects.filter(question=question).order_by("created")
 
