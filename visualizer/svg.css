@@ -1,8 +1,4 @@
 html, body {
-    /* Height and width fallback for older browsers. */
-    height: 100%;
-    width: 100%;
-
     /* Set the height to match that of the viewport. */
     height: 100vh;
 
@@ -14,15 +10,29 @@ html, body {
     /* Remove any browser-default margins. */
     margin: 0;
     padding: 0;
+
+    font-family: "Roboto Slab";
 }
 
-body {
+.content {
     display: flex;
+    width: 100vw;
+    height: 95vh;
+}
+
+.link {
+    text-align: center;
+    width: 100vw;
+    height: 5vh;
+    font-size: 2em;
+    font-weight: bolder;
+
+    font-family: "Montserrat"
 }
 
 .main {
     height: 100vh;
-    width: 80vw;
+    width: 85vw;
     margin: 0;
 }
 
@@ -31,7 +41,7 @@ body {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     height: 100vh;
-    width: 20vw;
+    width: 15vw;
     padding: 40px 20px;
 }
 
@@ -49,4 +59,27 @@ body {
 
 h3 {
     margin-top: 2em;
+}
+
+.legendNumber {
+    display: flex;
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.right div {
+    margin: 10px;
+}
+
+.case {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+    vertical-align: middle;
+    margin: 10px 10px 10px 0;
 }
