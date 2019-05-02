@@ -17,7 +17,7 @@ class Question(models.Model):
 
 
 class Table(models.Model):
-    numero = models.CharField(max_length=3, primary_key=True)
+    numero = models.CharField(max_length=3)
     code = models.CharField(max_length=5)
 
     def __str__(self):
