@@ -1,21 +1,12 @@
 from django import forms
-from django.forms import TextInput, ChoiceField, RadioSelect
+from django.forms import ChoiceField, RadioSelect
 
-from table_visu.models import Reponse, Table, Question
+from table_visu.models import Reponse, Question
 
 
-class TableCodeField(forms.ModelChoiceField):
+class GroupCodeField(forms.ModelChoiceField):
     def to_python(self, value):
         return super().to_python(str(value).upper())
-
-
-class SelectTableForm(forms.Form):
-    table = TableCodeField(
-        queryset=Table.objects.all(),
-        to_field_name="code",
-        widget=TextInput,
-        label="Code",
-    )
 
 
 class ReponseForm(forms.ModelForm):

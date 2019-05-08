@@ -28,12 +28,6 @@ html, body {
     font-family: 'Montserrat', sans-serif;
 }
 
-.main {
-    height: 100vh;
-    width: 85vw;
-    margin: 0;
-}
-
 .sidebar {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -44,6 +38,8 @@ html, body {
 }
 
 .groups {
+    height: 100%;
+    width: 90%;
     display: flex;
     flex-wrap: wrap;
 }
@@ -53,6 +49,15 @@ html, body {
     height: 30px;
     border: 1px solid black;
     margin: 10px;
+    text-align: center;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+.legend {
+    height: 100%;
+    width: 10%;
+    padding: 10px 0;
 }
 
 h3 {

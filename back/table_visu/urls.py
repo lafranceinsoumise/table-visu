@@ -16,10 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from table_visu.views import SelectTableView, ReponseView, ResultView, last_time
+from table_visu.views import SelectGroupView, ReponseView, ResultView, last_time
 
 urlpatterns = [
-    path("", SelectTableView.as_view(), name="select_table"),
+    path("groupe/<slug:slug>", SelectGroupView.as_view(), name="select_group"),
     path("question", ReponseView.as_view(), name="reponse"),
     path("last_question", last_time),
     path("json", ResultView.as_view()),

@@ -1,41 +1,7 @@
 import * as d3 from "d3";
-import { interpolateRdYlGn, schemeRdBu } from "d3-scale-chromatic";
+import { interpolateRdYlGn } from "d3-scale-chromatic";
 
-import "./svg.css";
-import rawTableCoords from "./data.json";
-
-const tableCoords = Object.entries(rawTableCoords).map(
-  ([table, coordinates]) => ({
-    table,
-    x: Math.round(coordinates[0]),
-    y: Math.round(coordinates[1])
-  })
-);
-
-const rectW = 127;
-const otherRectH = 50;
-const rect1C = [772, 805];
-const rect2C = [1367, 805];
-
-const rects = [
-  [...rect1C, rect1C[0] + rectW, rect1C[1] + rectW],
-  [...rect2C, rect2C[0] + rectW, rect2C[1] + rectW],
-  [
-    rect1C[0] + rectW,
-    rect1C[1] + rectW / 2 - otherRectH / 2,
-    rect2C[0],
-    rect1C[1] + rectW / 2 + otherRectH / 2
-  ]
-];
-
-const defaultMargin = 60;
-
-const margin = {
-  top: defaultMargin,
-  right: defaultMargin,
-  bottom: defaultMargin,
-  left: defaultMargin
-};
+import "./style.css";
 
 const agreementColors = ["#f26026", "#64b736"];
 
@@ -43,82 +9,8 @@ const numberScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1]);
 const agreementScale = d3.scaleOrdinal(agreementColors).domain([0, 1]);
 const grey = "#888";
 
-function Table(g, tableCoords) {
-  const circleGroup = g.append("g");
-  const textGroup = g.append("g");
-  const sceneGroup = g.append("g");
-
-  return function refresh(data) {
-    const svgDimensions = g.node().parentNode.getBoundingClientRect();
-
-    const dimensions = [
-      svgDimensions.width - margin.left - margin.right,
-      svgDimensions.height - margin.top - margin.bottom
-    ];
-    const joinedData = tableCoords.map(d =>
-      Object.assign({ value: data[d.table] }, d)
-    );
-
-    const circles = circleGroup.selectAll("circle").data(joinedData);
-
-    const text = textGroup.selectAll("text").data(joinedData);
-
-    const scene = sceneGroup.selectAll("rect").data(rects);
-
-    const xScale = d3
-      .scaleLinear()
-      .range([0, dimensions[0]])
-      .domain(d3.extent(tableCoords.map(d => d.x)));
-
-    const yScale = d3
-      .scaleLinear()
-      .range([0, dimensions[1]])
-      .domain(d3.extent(tableCoords.map(d => d.y)));
-
-    const colorScale = data.type === "number" ? numberScale : agreementScale;
-
-    circles
-      .enter()
-      .append("circle")
-      .attr("stroke", "black")
-      .attr("stroke-width", 2)
-      .merge(circles)
-      .attr("r", 28)
-      .attr("cx", d => xScale(d.x))
-      .attr("cy", d => yScale(d.y))
-      .transition()
-      .duration(1000)
-      .attr("fill", d => (d.value !== undefined ? colorScale(d.value) : grey));
-
-    text
-      .enter()
-      .append("text")
-      .attr("text-anchor", "middle")
-      .attr("alignment-baseline", "middle")
-      .attr("dy", ".3em")
-      .merge(text)
-      .attr("x", d => xScale(d.x))
-      .attr("y", d => yScale(d.y))
-      .text(d => d.table)
-      .transition()
-      .duration(1000)
-      .attr("fill", d =>
-        d.value ? (d.value > 0.3 && d.value < 0.7 ? "black" : "white") : "black"
-      );
-
-    scene
-      .enter()
-      .append("rect")
-      .attr("fill", "none")
-      .attr("stroke", "blue")
-      .attr("stroke-width", 5)
-      .merge(scene)
-      .attr("x", d => xScale(d[0]))
-      .attr("y", d => yScale(d[1]))
-      .attr("width", d => xScale(d[2]) - xScale(d[0]))
-      .attr("height", d => yScale(d[3]) - yScale(d[1]));
-  };
-}
+const MAX_SIZE = 100;
+const GROUP_MARGIN = 10;
 
 function legendNumber(div) {
   div.attr("class", "legendNumber");
@@ -206,13 +98,10 @@ function Legend(div) {
 function Groups(div) {
   const knownGroups = [];
 
-  div.append("h3").text("Les groupes à distance");
-  const container = div.append("div").attr("class", "groups");
-
   return function refresh(data) {
     const colorScale = data.type === "number" ? numberScale : agreementScale;
 
-    const groupKeys = Object.keys(data).filter(k => k[0] === "G");
+    const groupKeys = Object.keys(data.groups);
 
     for (let g of groupKeys) {
       if (!knownGroups.includes(g)) {
@@ -220,26 +109,53 @@ function Groups(div) {
       }
     }
 
-    const groups = container
+    const size = div.node().getBoundingClientRect();
+    const numbers = groupKeys.length;
+
+    let side = Math.min(
+      Math.floor(
+        Math.sqrt(
+          ((size.width - GROUP_MARGIN) * (size.height - GROUP_MARGIN)) / numbers
+        )
+      ),
+      MAX_SIZE
+    );
+
+    while (
+      Math.floor((size.width - GROUP_MARGIN) / side) *
+        Math.floor((size.height - GROUP_MARGIN) / side) <
+      numbers
+    ) {
+      side -= 1;
+    }
+
+    side -= GROUP_MARGIN;
+
+    const groups = div
       .selectAll(".group")
-      .data(knownGroups.map(k => ({ group: k, value: data[k] })));
+      .data(knownGroups.map(k => ({ group: k, value: data.groups[k] })));
 
     groups
       .enter()
       .append("div")
+      .text(d => d.group)
       .attr("class", "group")
       .merge(groups)
+      .style("width", `${side}px`)
+      .style("height", `${side}px`)
+      .style("line-height", `${side}px`)
       .style("background-color", d => (d.value ? numberScale(d.value) : grey))
       .style("color", d =>
         d.value ? (d.value > 0.3 && d.value < 0.7 ? "black" : "white") : "black"
       );
+
+    groups.exit().remove();
   };
 }
 
-function setUp(tableGroup, legendGroup) {
-  const table = Table(tableGroup, tableCoords);
-  const legend = Legend(legendGroup);
-  //const group = Groups(groupGroup)
+function setUp(groupsDiv, legendDiv) {
+  const groups = Groups(groupsDiv);
+  const legend = Legend(legendDiv);
   let refresher;
 
   window.addEventListener("resize", function() {
@@ -249,9 +165,8 @@ function setUp(tableGroup, legendGroup) {
   });
 
   function refresh(data) {
-    table(data);
+    groups(data);
     legend(data);
-    //group(data)
   }
 
   async function fetchData() {
@@ -275,16 +190,10 @@ function main() {
     .select("body")
     .append("div")
     .attr("class", "content");
-  const svg = content
-    .append("svg")
-    .attr("class", "main")
-    .attr("shape-rendering", "geometricPrecision");
-  const div = content.append("div").attr("class", "sidebar");
-  const tables = svg
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  const legendGroup = div.append("div");
-  setUp(tables, legendGroup);
+
+  const groupsDiv = content.append("div").attr("class", "groups");
+  const legendDiv = content.append("div").attr("class", "legend");
+  setUp(groupsDiv, legendDiv);
 
   const link = d3
     .select("body")

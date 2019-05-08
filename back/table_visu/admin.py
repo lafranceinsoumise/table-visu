@@ -1,12 +1,11 @@
 from django.contrib import admin
 
-from table_visu.models import Question, Table, Reponse
+from table_visu.models import Question, Group, Reponse
 
 
-@admin.register(Table)
-class TableAdmin(admin.ModelAdmin):
-    list_display = ("numero", "code")
-    pass
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ("code",)
 
 
 @admin.register(Question)
@@ -16,5 +15,4 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(Reponse)
 class ReponseAdmin(admin.ModelAdmin):
-    list_display = ("table", "question", "participants", "choice")
-    pass
+    list_display = ("group", "question", "participants", "choice")
