@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
+import { transition } from "d3-transition";
 
 import "./style.css";
 
@@ -135,6 +136,8 @@ function Groups(div) {
       .selectAll(".group")
       .data(knownGroups.map(k => ({ group: k, value: data.groups[k] })));
 
+    const t = transition().duration(750);
+
     groups
       .enter()
       .append("div")
@@ -144,9 +147,16 @@ function Groups(div) {
       .style("width", `${side}px`)
       .style("height", `${side}px`)
       .style("line-height", `${side}px`)
-      .style("background-color", d => (d.value ? numberScale(d.value) : grey))
+      .transition(t)
+      .style("background-color", d =>
+        d.value !== undefined ? numberScale(d.value) : grey
+      )
       .style("color", d =>
-        d.value ? (d.value > 0.3 && d.value < 0.7 ? "black" : "white") : "black"
+        d.value !== undefined
+          ? d.value > 0.3 && d.value < 0.7
+            ? "black"
+            : "white"
+          : "black"
       );
 
     groups.exit().remove();
