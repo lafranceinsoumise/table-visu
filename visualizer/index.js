@@ -10,7 +10,7 @@ const numberScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1]);
 const agreementScale = d3.scaleOrdinal(agreementColors).domain([0, 1]);
 const grey = "#888";
 
-const MAX_SIZE = 100;
+const MAX_SIZE = 400;
 const GROUP_MARGIN = 10;
 
 function legendNumber(div) {
