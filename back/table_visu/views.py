@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.response import SimpleTemplateResponse
@@ -47,7 +48,7 @@ class ReponseView(UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         if "group" not in request.session:
-            return redirect("select_group")
+            raise PermissionDenied("Vous n'avez pas le droit d'accéder à cette page.")
 
         self.question = Question.objects.last()
 
