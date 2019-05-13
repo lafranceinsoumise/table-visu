@@ -16,42 +16,12 @@ html, body {
 .content {
     display: flex;
     width: 100vw;
-    height: 95vh;
-}
-
-.link {
-    text-align: center;
-    width: 100vw;
-    height: 5vh;
-    font-size: 2em;
-    font-weight: bolder;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.sidebar {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
     height: 100vh;
-    width: 15vw;
-    padding: 40px 20px;
 }
 
 .groups {
     height: 100%;
     width: 90%;
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.group {
-    min-width: 30px;
-    height: 30px;
-    border: 1px solid black;
-    margin: 10px;
-    text-align: center;
-    vertical-align: middle;
-    box-sizing: border-box;
 }
 
 .legend {

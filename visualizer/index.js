@@ -8,10 +8,13 @@ const agreementColors = ["#f26026", "#64b736"];
 
 const numberScale = d3.scaleSequential(interpolateRdYlGn).domain([0, 1]);
 const agreementScale = d3.scaleOrdinal(agreementColors).domain([0, 1]);
-const grey = "#888";
+const ratioScale = d3
+  .scaleLinear()
+  .domain([1, 30])
+  .range([0.05, 0.35])
+  .clamp(true);
 
-const MAX_SIZE = 400;
-const GROUP_MARGIN = 10;
+const grey = "#888";
 
 function legendNumber(div) {
   div.attr("class", "legendNumber");
@@ -96,70 +99,83 @@ function Legend(div) {
   };
 }
 
-function Groups(div) {
-  const knownGroups = [];
+function Groups(svg) {
+  const g = svg.append("g");
+  let oldNumber = 0;
+  let oldRadius = 0;
+
+  const force = d3
+    .forceSimulation()
+    .force("center-x", d3.forceX(0).strength(0.05))
+    .force("center-y", d3.forceY(0).strength(0.08))
+    .alphaDecay(0.1)
+    .alphaTarget(0.1);
+
+  const nodes = [];
+  const knownGroups = new Set();
+
+  force.on("tick", function() {
+    console.log("tick");
+    g.selectAll("circle")
+      .data(this.nodes())
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y);
+  });
 
   return function refresh(data) {
     const colorScale = data.type === "number" ? numberScale : agreementScale;
 
     const groupKeys = Object.keys(data.groups);
 
-    for (let g of groupKeys) {
-      if (!knownGroups.includes(g)) {
-        knownGroups.push(g);
+    const size = svg.node().getBoundingClientRect();
+    const number = groupKeys.length;
+
+    // new data
+    for (let key of groupKeys) {
+      if (!knownGroups.has(key)) {
+        knownGroups.add(key);
+
+        const angle = Math.random() * 2 * Math.PI;
+        nodes.push({
+          group: key,
+          x: 1.5 * Math.max(size.width, size.height) * Math.cos(angle),
+          y: 1.5 * Math.min(size.width, size.height) * Math.sin(angle)
+        });
       }
     }
 
-    const size = div.node().getBoundingClientRect();
-    const numbers = groupKeys.length;
+    g.attr("transform", `translate(${size.width / 2},${size.height / 2})`);
 
-    let side = Math.min(
-      Math.floor(
-        Math.sqrt(
-          ((size.width - GROUP_MARGIN) * (size.height - GROUP_MARGIN)) / numbers
-        )
-      ),
-      MAX_SIZE
+    const radius = Math.sqrt(
+      (size.width * size.height * ratioScale(number)) / number / Math.PI
     );
 
-    while (
-      Math.floor((size.width - GROUP_MARGIN) / side) *
-        Math.floor((size.height - GROUP_MARGIN) / side) <
-      numbers
-    ) {
-      side -= 1;
-    }
-
-    side -= GROUP_MARGIN;
-
-    const groups = div
-      .selectAll(".group")
-      .data(knownGroups.map(k => ({ group: k, value: data.groups[k] })));
+    const groups = g
+      .selectAll("circle")
+      .data(groupKeys.map(k => ({ group: k, value: data.groups[k] })));
 
     const t = transition().duration(750);
 
     groups
       .enter()
-      .append("div")
-      .text(d => d.group)
-      .attr("class", "group")
+      .append("circle")
+      .attr("fill-opacity", 0)
+      .attr("fill", d => (d.value !== undefined ? colorScale(d.value) : grey))
+      .attr("r", 1)
       .merge(groups)
-      .style("width", `${side}px`)
-      .style("height", `${side}px`)
-      .style("line-height", `${side}px`)
       .transition(t)
-      .style("background-color", d =>
-        d.value !== undefined ? numberScale(d.value) : grey
-      )
-      .style("color", d =>
-        d.value !== undefined
-          ? d.value > 0.3 && d.value < 0.7
-            ? "black"
-            : "white"
-          : "black"
-      );
+      .attr("r", radius)
+      .attr("fill", d => (d.value !== undefined ? colorScale(d.value) : grey))
+      .attr("fill-opacity", 1);
 
     groups.exit().remove();
+
+    if (radius !== oldRadius || number !== oldNumber) {
+      force.nodes(nodes);
+      force.force("charge", d3.forceCollide(radius * 1.1));
+    }
+    oldRadius = radius;
+    oldNumber = number;
   };
 }
 
@@ -201,15 +217,9 @@ function main() {
     .append("div")
     .attr("class", "content");
 
-  const groupsDiv = content.append("div").attr("class", "groups");
+  const groupsElem = content.append("svg").attr("class", "groups");
   const legendDiv = content.append("div").attr("class", "legend");
-  setUp(groupsDiv, legendDiv);
-
-  const link = d3
-    .select("body")
-    .append("div")
-    .attr("class", "link")
-    .text("la-fi.fr/convention2018");
+  setUp(groupsElem, legendDiv);
 }
 
 main();
